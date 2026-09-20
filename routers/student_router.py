@@ -23,13 +23,6 @@ async def add_new_student(student_object: Student):
     for student in school_info["students"]:
         if student["id"] == student_object.id:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Студент с таким id уже существует!")
-    for school_class in school_info["school_classes"]:
-        if school_class["id"] == student_object.class_id and student_object.class_ranking > school_class["number_of_students"] + 1:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Место ученика не может быть ниже, чем количество людей в классе!")
-        elif school_class["id"] == student_object.class_id and school_class["number_of_students"] + 1 > 40:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="В этом классе больше 40 учеников!")
-        elif school_class["id"] == student_object.class_id:
-            school_class["number_of_students"] += 1
 
     school_info["students"].append(student_object.model_dump(mode="json"))
     save_data(school_info)
@@ -41,28 +34,10 @@ async def update_student_by_id(student_id: int, student_object: Student):
     for student in school_info["students"]:
         if student["id"] == student_id:
             student_to_update = student
-    if student_to_update and student_to_update["class_id"] != student_object.class_id:
-        for school_class in school_info["school_classes"]:
-            if school_class["id"] == student_object.class_id and student_object.class_ranking > school_class["number_of_students"] + 1:
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Место ученика не может быть ниже, чем количество людей в классе!")
-            elif school_class["id"] == student_object.class_id and school_class["number_of_students"] + 1 > 40:
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="В этом классе больше 40 учеников!")
-            elif school_class["id"] == student_object.class_id:
-                school_class["number_of_students"] += 1
-            elif school_class["id"] == student_to_update["class_id"]:
-                school_class["number_of_students"] -= 1
+    if student_to_update:
         student_to_update["fio"] = student_object.fio
         student_to_update["birth_date"] = student_object.birth_date.isoformat()
-        student_to_update["class_id"] = student_object.class_id
         student_to_update["class_ranking"] = student_object.class_ranking
-    elif student_to_update and student_to_update["class_id"] == student_object.class_id:
-        for school_class in school_info["school_classes"]:
-            if school_class["id"] == student_object.class_id and student_object.class_ranking > school_class["number_of_students"]:
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Место ученика не может быть ниже, чем количество людей в классе!")
-            elif school_class["id"] == student_object.class_id:
-                student_to_update["fio"] = student_object.fio
-                student_to_update["birth_date"] = student_object.birth_date.isoformat()
-                student_to_update["class_ranking"] = student_object.class_ranking
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ученик не найден")
     save_data(school_info)
@@ -72,9 +47,6 @@ async def delete_student_by_id(student_id: int):
     school_info = load_data()
     for student in school_info["students"]:
         if student["id"] == student_id:
-            for school_class in school_info["school_classes"]:
-                if school_class["id"] == student["class_id"]:
-                    school_class["number_of_students"] -= 1
             school_info["students"].remove(student)
             save_data(school_info)
             return {"message": "Ученик удален"}

@@ -27,7 +27,7 @@ async def add_new_teacher(teacher_object: Teacher):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Такой учитель уже есть."
             )
-        elif teacher["class_id"] == teacher_object.class_id:
+        elif teacher["school_class_id"] == teacher_object.school_class_id:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Класс уже привязан к другому учителю"
@@ -42,7 +42,7 @@ async def update_teacher_by_id(teacher_id: int, teacher_object: Teacher):
     school_info = load_data()
     teacher_to_update = None
     for teacher in school_info["teachers"]:
-        if teacher["id"] != teacher_id and teacher["class_id"] == teacher_object.class_id:
+        if teacher["id"] != teacher_id and teacher["school_class_id"] == teacher_object.school_class_id:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Учитель с таким классом уже существует!"
@@ -51,7 +51,7 @@ async def update_teacher_by_id(teacher_id: int, teacher_object: Teacher):
             teacher_to_update = teacher
     if teacher_to_update:
         teacher_to_update["fio"] = teacher_object.fio
-        teacher_to_update["class_id"] = teacher_object.class_id
+        teacher_to_update["school_class_id"] = teacher_object.school_class_id
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Учитель не найден")
     save_data(school_info)
