@@ -1,5 +1,5 @@
 from schemas.schemas import Teacher
-from database import load_data, save_data
+from database import make_data, load_data, save_data
 from fastapi import APIRouter, HTTPException, status
 
 teacher_router = APIRouter(prefix="/teacher")
